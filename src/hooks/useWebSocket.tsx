@@ -1,90 +1,69 @@
 import { useEffect } from 'react';
-import { connected, disconnected, getTimeoutSeconds, sendOscHeartRate } from '../lib/service';
+import { connected, disconnected, sendOscHeartRate } from '../lib/service';
 import { useConfig } from '../lib/states';
-import { getWebSocketUrl } from '../lib/stromno';
-
-type HeartRateData = {
-  data: {
-    heartRate: number;
-  };
-};
+import { getLatestHeartRate, getWebSocketUrl } from '../lib/stromno';
 
 let timeout: ReturnType<typeof setTimeout>;
-let socket: WebSocket | null = null;
 
 const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnected?: () => void, onDisconnect?: () => void) => {
   const config = useConfig((state) => state.config);
 
   useEffect(() => {
-    if (!config?.stromno_widget_id) {
-      if (socket) socket.close();
-      return;
-    }
+    if (!config?.stromno_widget_id) return;
 
-    (async () => {
-      console.info('connecting to websocket');
+    let cancelled = false;
+    let streamUrl: string | undefined;
 
-      const wsUrl = await getWebSocketUrl(config.stromno_widget_id);
-      if (!wsUrl) {
-        if (socket) socket.close();
+    const update = async () => {
+      try {
+        if (!streamUrl) {
+          streamUrl = (await getWebSocketUrl(config.stromno_widget_id)) || undefined;
+          if (!streamUrl || cancelled) return;
+        }
 
-        console.info('failed to get websocket url');
-        return;
-      }
-
-      if (socket) socket.close();
-
-      socket = new WebSocket(wsUrl);
-
-      const onMessage = async (event: MessageEvent<string>) => {
-        if (config == null) return;
-        console.info('WS: message', event.data);
-        if (timeout != null) {
+        const reading = await getLatestHeartRate(streamUrl);
+        if (cancelled || reading == null) {
           clearTimeout(timeout);
+          onDisconnect?.();
+          void disconnected();
+          return;
         }
 
-        await connected(onConnected);
-        try {
-          const json = JSON.parse(event.data) as HeartRateData;
-          onReceiveHeartrate?.(json.data.heartRate);
-          await sendOscHeartRate(json.data.heartRate);
-        } catch (err) {
-          console.error(err);
+        const age = Date.now() - reading.timestamp;
+        const timeoutMs = config.connected_timeout * 1000;
+        if (age < 0 || age > timeoutMs) {
+          clearTimeout(timeout);
+          onDisconnect?.();
+          void disconnected();
+          return;
         }
 
+        clearTimeout(timeout);
+        onConnected?.();
+        void connected();
+        onReceiveHeartrate?.(reading.heartRate);
+        void sendOscHeartRate(reading.heartRate);
         timeout = setTimeout(() => {
-          disconnected(onDisconnect);
-        }, await getTimeoutSeconds());
-      };
+          onDisconnect?.();
+          void disconnected();
+        }, timeoutMs);
+      } catch (err) {
+        console.error('Pulsoid update failed', err);
+        streamUrl = undefined;
+        clearTimeout(timeout);
+        onDisconnect?.();
+        void disconnected();
+      }
+    };
 
-      const onOpen = () => {
-        console.info('WS: open');
-      };
-
-      const onError = (error: Event) => {
-        console.error('WS: error', error);
-      };
-
-      const onClose = () => {
-        console.info('WS: closed');
-        disconnected();
-
-        socket?.removeEventListener('open', onOpen);
-        socket?.removeEventListener('error', onError);
-        socket?.removeEventListener('message', onMessage);
-        socket?.removeEventListener('close', onClose);
-      };
-
-      socket?.addEventListener('open', onOpen);
-      socket?.addEventListener('error', onError);
-      socket?.addEventListener('message', onMessage);
-      socket?.addEventListener('close', onClose);
-    })();
+    // Start immediately, then keep retrying URL discovery and data reads.
+    void update();
+    const pollTimer = setInterval(update, 1000);
 
     return () => {
-      console.info('unmount');
-      if (socket) socket.close();
-      socket = null;
+      cancelled = true;
+      clearInterval(pollTimer);
+      clearTimeout(timeout);
     };
   }, [config]);
 };

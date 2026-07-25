@@ -1,73 +1,15 @@
 {
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "hr-osc",
+  "version": "0.3.2",
+  "identifier": "me.kamyu.hr-osc",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
-    "devPath": "http://localhost:1420",
-    "distDir": "../dist"
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
   },
-  "package": {
-    "productName": "hr-osc",
-    "version": "0.3.2"
-  },
-  "tauri": {
-    "allowlist": {
-      "all": true,
-      "fs": {
-        "all": true,
-        "copyFile": true,
-        "createDir": true,
-        "exists": true,
-        "readDir": true,
-        "readFile": true,
-        "removeDir": true,
-        "removeFile": true,
-        "renameFile": true,
-        "scope": ["$APPDATA/data/*", "$APPDATA/logs/*", "$APPDATA/*"],
-        "writeFile": true
-      },
-      "http": {
-        "all": true,
-        "request": true,
-        "scope": ["https://api.stromno.com/v1/api/*"]
-      }
-    },
-    "bundle": {
-      "active": true,
-      "category": "DeveloperTool",
-      "copyright": "kamyu",
-      "deb": {
-        "depends": []
-      },
-      "externalBin": [],
-      "icon": ["icons/icon.ico", "icons/icon.png"],
-      "identifier": "me.kamyu.hr-osc",
-      "longDescription": "",
-      "macOS": {
-        "entitlements": null,
-        "exceptionDomain": "",
-        "frameworks": [],
-        "providerShortName": null,
-        "signingIdentity": null
-      },
-      "resources": [],
-      "shortDescription": "",
-      "targets": "all",
-      "windows": {
-        "certificateThumbprint": null,
-        "digestAlgorithm": "sha256",
-        "timestampUrl": "",
-        "webviewInstallMode": {
-          "silent": true,
-          "type": "embedBootstrapper"
-        }
-      }
-    },
-    "security": {
-      "csp": null
-    },
-    "updater": {
-      "active": false
-    },
+  "app": {
     "windows": [
       {
         "fullscreen": false,
@@ -76,6 +18,17 @@
         "title": "hr-osc",
         "width": 325
       }
-    ]
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "category": "DeveloperTool",
+    "copyright": "kamyu",
+    "icon": ["icons/icon.png"],
+    "shortDescription": "Heart rate OSC bridge for VRChat",
+    "targets": ["deb", "rpm"]
   }
 }

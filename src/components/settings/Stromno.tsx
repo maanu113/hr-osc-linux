@@ -13,7 +13,7 @@ const Stromno = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="text-sm leading-3">Widget Id:</div>
+      <div className="text-sm leading-3">Pulsoid Widget ID:</div>
       {widget.component}
 
       <button

@@ -4,6 +4,9 @@ import { defineConfig } from 'vite';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  // Tauri serves the packaged frontend from its custom protocol origin.
+  // Relative asset URLs are required for production bundles.
+  base: './',
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   // prevent vite from obscuring rust errors

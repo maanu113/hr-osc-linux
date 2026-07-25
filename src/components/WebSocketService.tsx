@@ -5,7 +5,10 @@ const WebSocketService = ({ setConnected, setHeartRate }: ServiceProps) => {
   useWebSocket(
     (heartRate) => setHeartRate(heartRate),
     () => setConnected(true),
-    () => setConnected(false)
+    () => {
+      setConnected(false);
+      setHeartRate(0);
+    }
   );
   return <></>;
 };

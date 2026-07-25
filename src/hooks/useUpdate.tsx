@@ -17,7 +17,15 @@ const useUpdate = (): [string, () => Promise<void>, React.ReactNode] => {
     try {
       const version = await getVersion();
 
-      const resp = await fetch('https://api.github.com/repos/kamyu1537/hr-osc/releases/latest');
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 3000);
+      const resp = await fetch('https://api.github.com/repos/kamyu1537/hr-osc/releases/latest', {
+        signal: controller.signal,
+      });
+      window.clearTimeout(timeout);
+      if (!resp.ok) {
+        throw new Error(`GitHub release check failed: HTTP ${resp.status}`);
+      }
       const release = await resp.json();
 
       let releaseVersion = release.tag_name;

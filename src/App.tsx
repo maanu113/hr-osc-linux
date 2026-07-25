@@ -5,7 +5,7 @@ import Loading from './components/Loading';
 import NavBar from './components/NavBar';
 import WebSocketService from './components/WebSocketService';
 import useUpdate from './hooks/useUpdate';
-import { getConfig } from './lib/config';
+import { defaultConfig, getConfig } from './lib/config';
 import { useConfig } from './lib/states';
 import About from './routes/About';
 import Home from './routes/Home';
@@ -20,9 +20,17 @@ const App = () => {
 
   useEffect(() => {
     (async () => {
-      setConfig(await getConfig());
-      await checkUpdate();
-      setLoaded(true);
+      try {
+        setConfig(await getConfig());
+      } catch (err) {
+        console.error('Could not load config, using defaults:', err);
+        setConfig(defaultConfig);
+      } finally {
+        setLoaded(true);
+      }
+
+      // Update checks must never block the application UI from starting.
+      void checkUpdate();
     })();
   }, []);
 

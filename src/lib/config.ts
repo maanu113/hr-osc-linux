@@ -1,5 +1,6 @@
-import { BaseDirectory, createDir, exists, readTextFile, writeTextFile } from '@tauri-apps/api/fs';
 import { useConfig } from './states';
+
+const CONFIG_KEY = 'hr-osc.config';
 
 export const defaultConfig: IConfig = {
   service_type: 'stromno',
@@ -16,56 +17,26 @@ export const defaultConfig: IConfig = {
   osc_client_port: 9000,
 };
 
-async function writeDefaultConfig() {
-  await writeTextFile(
-    {
-      path: 'data/config.json',
-      contents: JSON.stringify(defaultConfig, null, 2),
-    },
-    { dir: BaseDirectory.App }
-  );
-}
-
 export async function getConfig() {
-  createDir('data', { recursive: true, dir: BaseDirectory.App });
-  const isExists = (await exists('data/config.json', { dir: BaseDirectory.App })) as unknown as boolean;
-  if (!isExists) {
-    await writeDefaultConfig();
+  const read = window.localStorage.getItem(CONFIG_KEY);
+  if (!read) {
+    await saveConfig(defaultConfig);
+    return { ...defaultConfig };
   }
 
-  let config = { ...defaultConfig };
-  const read = await readTextFile('data/config.json', { dir: BaseDirectory.App });
   try {
     const parse = JSON.parse(read);
-    config = { ...config, ...parse };
+    return { ...defaultConfig, ...parse };
   } catch (err) {
-    console.error(err);
-    await writeDefaultConfig();
+    console.error('Could not parse saved config, using defaults:', err);
+    await saveConfig(defaultConfig);
+    return { ...defaultConfig };
   }
-
-  return config;
 }
 
 export async function saveConfig(config: IConfig) {
-  await writeTextFile(
-    {
-      path: 'data/config.json',
-      contents: JSON.stringify(config, null, 2),
-    },
-    { dir: BaseDirectory.App }
-  );
-
-  let newConfig = { ...defaultConfig };
-  const read = await readTextFile('data/config.json', { dir: BaseDirectory.App });
-  try {
-    const parse = JSON.parse(read);
-    newConfig = { ...newConfig, ...parse };
-  } catch (err) {
-    console.error(err);
-    await writeDefaultConfig();
-  }
-
-  useConfig.getState().setConfig({ ...newConfig });
+  window.localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+  useConfig.getState().setConfig({ ...defaultConfig, ...config });
 }
 
 export interface IConfig {

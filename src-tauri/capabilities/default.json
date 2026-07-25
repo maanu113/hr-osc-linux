@@ -1,0 +1,18 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default capabilities for the hr-osc desktop window",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "fs:default",
+    {
+      "identifier": "http:default",
+      "allow": [
+        { "url": "https://api.stromno.com/**" },
+        { "url": "https://dev.pulsoid.net/**" }
+      ]
+    },
+    "log:default"
+  ]
+}

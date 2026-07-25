@@ -6,6 +6,18 @@ Heartrate OSC for VRChat
 
 [Release](https://github.com/kamyu1537/hr-osc/releases)
 
+## Linux build
+
+Linux builds use Tauri 2 and WebKitGTK 4.1. On Arch Linux, install the
+`webkit2gtk-4.1` package, then run:
+
+```bash
+npm ci
+npm run tauri build
+```
+
+The generated packages are written to `src-tauri/target/release/bundle/`.
+
 ## Usage
 
 ### VRChat
