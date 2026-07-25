@@ -4,7 +4,17 @@ Heartrate OSC for VRChat
 
 ## Download
 
-[Release](https://github.com/kamyu1537/hr-osc/releases)
+- [Latest Linux release](https://github.com/maanu113/hr-osc-linux/releases/latest)
+- [All releases](https://github.com/maanu113/hr-osc-linux/releases)
+
+Linux packages are provided as `.deb` and `.rpm` release assets. Download the
+package matching your distribution and install it with your normal package
+manager. On Arch/CachyOS, use the RPM package with `rpm` or extract/install it
+according to your system's package workflow.
+
+The launcher uses X11/XWayland and disables WebKit compositing by default for
+compatibility with Linux WebKitGTK environments. Run `run-linux.sh` from a
+checkout when using the unpackaged binary.
 
 ## Linux build
 
